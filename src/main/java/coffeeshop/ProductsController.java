@@ -1,5 +1,6 @@
 package coffeeshop;
 
+import org.json.JSONObject;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,6 +12,8 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 
 @Controller
@@ -48,19 +51,32 @@ public class ProductsController {
 
 		String postUrl = "http://localhost:8080/products/save";
 		RestTemplate restTemplate = new RestTemplate();
-		Product product = new Product(productName, description, price,productType);
 
-		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		HttpEntity<String> entity = new HttpEntity<String>("parameters", headers);
 
-		ResponseEntity<String> postResponse = restTemplate.postForEntity(postUrl, product, String.class);
-		if(postResponse.getBody() != null){
-			System.out.println("Response for Get Request: " + postResponse.getBody().toString());
-		}else{
-			System.out.println("Response for Get Request: NULL");
+		HttpHeaders httpHeaders = new HttpHeaders();
+		httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+		httpHeaders.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		try {
+			JSONObject jsonCredentials = new JSONObject();
+			jsonCredentials.put("productName", productName);
+			jsonCredentials.put("description", description);
+			jsonCredentials.put("price", Double.toString(price));
+			jsonCredentials.put("productType", productType.toString());
+
+			System.out.print( ">>>>>>>>>>>>>>>> JSON credentials " + jsonCredentials.toString());
+			HttpEntity<String> entityCredentials = new HttpEntity<String>(jsonCredentials.toString(), httpHeaders);
+			ResponseEntity<String > responseEntity = restTemplate.exchange(postUrl,
+					HttpMethod.POST, entityCredentials, String.class);
+			if (responseEntity != null) {
+				System.out.println( responseEntity.getBody());
+			}
+
+		} catch (Exception e) {
+			System.out.print( ">>>>>>>>>>>>>>>> " + e.getLocalizedMessage());
 		}
 
-		return "/products";
+
+
+		return "/successAdded";
 	}
 }
